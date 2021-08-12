@@ -1,0 +1,143 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        body {
+            background: #0F3460;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 10px;
+            color:rgb(233, 233, 233);;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            width: 90%;
+        }
+
+        .card {
+            margin-top: 30px;
+            background: rgb(233, 233, 233);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .card-title {
+            margin-bottom: 15px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .card-body {
+            margin: 10px;
+        }
+    </style>
+    <title>Infinite Scroller</title>
+</head>
+<body>
+    <h1>Infinite Scroller</h1>
+    <main class="container"></main>
+
+    <script>
+        window.addEventListener("load", () => {
+            this.container = document.querySelector(".container")
+            this.baseURL = "https://jsonplaceholder.typicode.com/posts"
+            getStarted().catch()
+        })
+
+        async function getStarted(page = 1) {
+            try {
+                const dataAPI = await getDataJSONPlaceholder(page)
+                const html = new Card(dataAPI).build()
+                const observer = new CardObserver().buildObserver()
+                observer.observe(html)
+                window.container.append(html)
+            } catch (err) {
+                console.log(err.message)
+            }
+        }
+
+        async function getDataJSONPlaceholder(page = 1) {
+            try {
+                console.log(page)
+                const dataRaw = await fetch(`${window.baseURL}/${page}`)
+                const dataJson = await dataRaw.json()
+                return Promise.resolve(dataJson)
+            } catch(err) {
+                return Promise.reject(err.message)
+            }
+        }
+
+        function Card(dataAPI) {
+            this.build = function() {
+                const { id, body, title } = dataAPI
+                const cardContainer = this.buildCardContainer(id)
+                const cardTitle = this.buildCardTitle(title)
+                const cardBody = this.buildCardBody(body)
+                cardContainer.append(cardTitle)
+                cardContainer.append(cardBody)
+                return cardContainer
+            }
+
+            this.buildCardContainer = function(id) {
+                const card = document.createElement('section')
+                card.className = "card"
+                card.id = id
+                return card
+            }
+
+            this.buildCardTitle = function(title) {
+                const cardTitle = document.createElement('div')
+                cardTitle.className = "card-title"
+                const cardTitleText = document.createTextNode(title)
+                cardTitle.appendChild(cardTitleText)
+                return cardTitle
+            }
+
+            this.buildCardBody = function(body) {
+                const cardBody = document.createElement('div')
+                cardBody.className = "card-body"
+                const cardBodyText = document.createTextNode(body)
+                cardBody.appendChild(cardBodyText)
+                return cardBody
+            }
+        }
+
+        function CardObserver() {
+            this.options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0
+            }
+
+            this.buildObserver = function() {
+                const observer = new IntersectionObserver(this.callback, this.options)
+                return observer
+            }
+
+            this.callback = async function(entries, observer) {
+                const [ entry ] = entries
+                if(entry.isIntersecting) {
+                    if(entry.target.id < 100) {
+                        const page = Number(entry.target.id) + 1
+                        getStarted(page).catch(() => observer.disconnect(entry.target))
+                    }
+                    observer.unobserve(entry.target)
+                }
+            }
+        }
+    </script>
+</body>
+</html>
