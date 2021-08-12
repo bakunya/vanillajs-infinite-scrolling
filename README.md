@@ -1,2 +1,2 @@
 # vanillajs-infinite-scrolling
-Full source code dari tutorial [medeveloper.me/infinite-scrolling](Medeveloper)
+Full source code dari tutorial [Medeveloper](medeveloper.me/infinite-scrolling)
